@@ -1,0 +1,4 @@
+name: Numeron
+version: '${project.version}'
+main: net.tv.twitch.chrono_fish.numeron.Numeron
+api-version: '1.20'
