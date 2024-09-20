@@ -1,6 +1,7 @@
 package net.tv.twitch.chrono_fish.numeron;
 
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 
 public class NuPlayer {
 
@@ -41,40 +42,88 @@ public class NuPlayer {
     public void attack(){
         int eat = 0;
         int bite = 0;
-        NuPlayer target = null;
         boolean[] checked = new boolean[3];
+        int[] targetSecretNumbers;
 
-        if(nuGame.getFirstP().equals(this)){
-            target = nuGame.getSecondP();
-        }else{
-            target = nuGame.getFirstP();
+        NuPlayer target = null;
+
+        if (nuGame.isSolo()) {
+            // ソロモードの場合、ゲーム側の秘密の数字を使用
+            targetSecretNumbers = nuGame.getSoloSecretNumber();
+        } else {
+            // 通常モードの場合、対戦相手の秘密の数字を使用
+            target = (nuGame.getFirstP().equals(this)) ? nuGame.getSecondP() : nuGame.getFirstP();
+            targetSecretNumbers = target.getSecretNumbers();
         }
 
-        for(int index = 0; index<3; index++){
-            if(guessNumber[index] == target.getSecretNumbers()[index]){
+        // Eatの判定
+        for (int index = 0; index < 3; index++) {
+            if (guessNumber[index] == targetSecretNumbers[index]) {
                 eat++;
                 checked[index] = true;
             }
         }
 
-        for(int index = 0; index<3; index++){
-            if(!checked[index]){
-                for(int j=0; j<3; j++){
-                    if (!checked[j] && guessNumber[index] == target.getSecretNumbers()[j]) {
+        // Biteの判定
+        for (int index = 0; index < 3; index++) {
+            if (!checked[index]) {
+                for (int j = 0; j < 3; j++) {
+                    if (!checked[j] && guessNumber[index] == targetSecretNumbers[j]) {
                         bite++;
                         checked[j] = true;
                         break;
                     }
                 }
-
             }
         }
+
+        // 結果の表示
+        this.getPlayer().sendMessage("Eat: " + eat + ", Bite: " + bite);
 
         player.sendMessage("Eat: " + eat + ", Bite: " + bite);
         if (eat == 3) {
             nuGame.setRunning(false);
-            player.sendMessage("You won!");
-            target.getPlayer().sendMessage("You lost!");
+            if(nuGame.isSolo()){
+                player.sendMessage("You success!");
+            }else{
+                player.sendMessage("You won!");
+                target.getPlayer().sendMessage("You lost!");
+            }
+
+        }
+    }
+
+    public void useItem(ItemStack item) {
+        switch(item.getType()) {
+            case CROSSBOW:
+                // DOUBLE アイテムの処理
+                // 例: 2回連続で数字を宣言できる
+                break;
+
+            case COMPASS:
+                // HIGH_AND_LOW アイテムの処理
+                // 例: 相手の数字列がHighかLowかを判定
+                break;
+
+            case TARGET:
+                // TARGET アイテムの処理
+                // 例: 1つの数字がどの桁に入っているかを判定
+                break;
+
+            case BUCKET:
+                // SLASH アイテムの処理
+                // 例: 最大の数字から最小の数字を引いた結果を知る
+                break;
+
+            case ELYTRA:
+                // SHUFFLE または CHANGE アイテムの処理
+                // SHUFFLE: 自分の数字をシャッフルする
+                // CHANGE: 数字の一部を入れ替える
+                break;
+
+            default:
+                // 未知のアイテムの場合
+                break;
         }
     }
 }
